@@ -1,0 +1,39 @@
+{
+  "numeric_features": [
+    "age",
+    "years_employed",
+    "annual_income",
+    "loan_amount",
+    "loan_term_months",
+    "interest_rate",
+    "credit_score",
+    "existing_loans",
+    "monthly_emi",
+    "emi_to_income",
+    "loan_to_income"
+  ],
+  "categorical_features": [
+    "gender",
+    "education",
+    "employment_type",
+    "loan_purpose"
+  ],
+  "all_features": [
+    "age",
+    "years_employed",
+    "annual_income",
+    "loan_amount",
+    "loan_term_months",
+    "interest_rate",
+    "credit_score",
+    "existing_loans",
+    "monthly_emi",
+    "emi_to_income",
+    "loan_to_income",
+    "gender",
+    "education",
+    "employment_type",
+    "loan_purpose"
+  ],
+  "target": "default"
+}

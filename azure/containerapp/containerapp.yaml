@@ -1,0 +1,37 @@
+kind: containerapp
+location: eastus2
+name: loan-classifier-app
+resourceGroup: loan-rg
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: /subscriptions/1c2fd79b-ad21-4ad0-8d53-12de16650452/resourceGroups/loan-rg/providers/Microsoft.App/managedEnvironments/loan-ml-env
+  configuration:
+    activeRevisionsMode: Single
+    secrets:
+      - name: acr-password
+        value: DX9Y0fnu9sPNQX3qjrtydyWb0hWM0UGc0umHflPwr5FIPqgFLci9JQQJ99CFACHYHv6Eqg7NAAACAZCRqHgO
+    ingress:
+      external: true
+      allowInsecure: false
+      targetPort: 8000
+      transport: http
+      traffic:
+        - latestRevision: true
+          weight: 100
+    registries:
+      - server: loanpredict.azurecr.io
+        username: loanpredict
+        passwordSecretRef: acr-password
+  template:
+    containers:
+      - name: loan-classifier
+        image: loanpredict.azurecr.io/loan-default:v1
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        env:
+          - name: PYTHONPATH
+            value: /app/src
+    scale:
+      minReplicas: 1
+      maxReplicas: 3

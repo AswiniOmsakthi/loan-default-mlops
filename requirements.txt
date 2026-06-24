@@ -1,0 +1,10 @@
+# Core ML
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.7.1
+joblib==1.4.2
+
+# API
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.3

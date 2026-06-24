@@ -1,0 +1,58 @@
+{
+  "accuracy": 0.7535,
+  "precision": 0.4675,
+  "recall": 0.1491,
+  "f1_score": 0.2261,
+  "roc_auc": 0.6692,
+  "classification_report": {
+    "No Default": {
+      "precision": 0.7773564463705309,
+      "recall": 0.9459459459459459,
+      "f1-score": 0.8534046981861433,
+      "support": 1517.0
+    },
+    "Default": {
+      "precision": 0.4675324675324675,
+      "recall": 0.14906832298136646,
+      "f1-score": 0.2260596546310832,
+      "support": 483.0
+    },
+    "accuracy": 0.7535,
+    "macro avg": {
+      "precision": 0.6224444569514992,
+      "recall": 0.5475071344636562,
+      "f1-score": 0.5397321764086133,
+      "support": 2000.0
+    },
+    "weighted avg": {
+      "precision": 0.7025339554811386,
+      "recall": 0.7535,
+      "f1-score": 0.7019008701675963,
+      "support": 2000.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1435,
+      82
+    ],
+    [
+      411,
+      72
+    ]
+  ],
+  "top_10_features": {
+    "credit_score": 0.268,
+    "emi_to_income": 0.1868,
+    "loan_to_income": 0.1213,
+    "interest_rate": 0.1084,
+    "loan_amount": 0.0695,
+    "monthly_emi": 0.0645,
+    "existing_loans": 0.0334,
+    "age": 0.0304,
+    "years_employed": 0.0274,
+    "annual_income": 0.0232
+  },
+  "test_size": 2000,
+  "default_rate_test": 0.2415
+}

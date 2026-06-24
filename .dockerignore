@@ -1,0 +1,17 @@
+data/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+venv/
+.venv/
+env/
+*.ipynb
+.ipynb_checkpoints/
+*.log
+logs/
+.DS_Store
+Thumbs.db
+azure/

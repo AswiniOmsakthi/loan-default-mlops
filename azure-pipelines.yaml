@@ -1,0 +1,103 @@
+# azure-pipelines.yml
+# Simple CI/CD Pipeline for Iris Classifier
+
+trigger:
+  branches:
+    include:
+      - master
+
+variables:
+  ACR_SERVER:     loanpredict.azurecr.io
+  IMAGE_NAME:     loan-default
+  RESOURCE_GROUP: loan-rg
+  CONTAINER_APP:  loan-classifier-app
+
+stages:
+
+# ── Stage 1 — Download Model ──────────────────────────────────
+- stage: Train
+  displayName: "Stage 1 — Download Model from Azure ML"
+  jobs:
+  - job: TrainJob
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: "3.10"
+      displayName: "Setup Python 3.10"
+
+    - script: pip install azure-ai-ml azure-identity
+      displayName: "Install Azure ML packages"
+
+    - task: AzureCLI@2
+      displayName: "Download latest model from Azure ML Registry"
+      inputs:
+        azureSubscription: loan-azure-connection
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          python azure/download_model.py
+
+    - publish: models
+      artifact: models
+      displayName: "Save model files"
+
+# ── Stage 2 — Build and Push ──────────────────────────────────
+- stage: Build
+  displayName: "Stage 2 — Build and Push Image"
+  dependsOn: Train
+  condition: succeeded()
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+
+    - download: current
+      artifact: models
+      displayName: "Get model files"
+
+    - script: cp -r $(Pipeline.Workspace)/models/* models/
+      displayName: "Restore model files"
+
+    - task: Docker@2
+      displayName: "Build image"
+      inputs:
+        command: build
+        repository: $(ACR_SERVER)/$(IMAGE_NAME)
+        dockerfile: Dockerfile
+        tags: $(Build.BuildId)
+
+    - task: Docker@2
+      displayName: "Push to ACR"
+      inputs:
+        command: push
+        containerRegistry: loan-acr-connection
+        repository: $(IMAGE_NAME)
+        tags: $(Build.BuildId)
+
+# ── Stage 3 — Deploy ──────────────────────────────────────────
+- stage: Deploy
+  displayName: "Stage 3 — Deploy to Azure"
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+
+    - task: AzureCLI@2
+      displayName: "Deploy to Container Apps"
+      inputs:
+        azureSubscription: loan-azure-connection
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az containerapp update \
+            --name $(CONTAINER_APP) \
+            --resource-group $(RESOURCE_GROUP) \
+            --image $(ACR_SERVER)/$(IMAGE_NAME):$(Build.BuildId)
+          echo "Deployed successfully"
