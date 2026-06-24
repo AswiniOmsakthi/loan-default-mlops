@@ -1,6 +1,8 @@
 """
 download_model.py to get model from ML Registry
 Downloads latest registered model from Azure ML Registry
+download_model.py
+Downloads latest registered model from Azure ML Registry and version also happens
 into models/ folder for Docker build
 Written by: MLOps Engineer
 """
