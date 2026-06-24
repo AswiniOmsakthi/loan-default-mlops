@@ -7,7 +7,7 @@ Run: python azure/pipeline/pipeline.py
 import os
 from azure.ai.ml import MLClient, Input, Output
 from azure.ai.ml.dsl import pipeline
-from azure.ai.ml.entities import CommandComponent, Environment
+from azure.ai.ml.entities import CommandComponent, Environment, UserIdentityConfiguration
 from azure.identity import DefaultAzureCredential
 
 # ── Your Azure details ───────────────────────────────────────────
@@ -24,7 +24,7 @@ ml_client = MLClient(
     WORKSPACE_NAME,
 )
 
-# ── Environment — what packages each step needs ──────────────────
+# ── Environment ──────────────────────────────────────────────────
 env = Environment(
     name="loan-pipeline-env",
     image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04",
@@ -116,10 +116,10 @@ register_component = CommandComponent(
     },
 )
 
-# ── Connect all 4 steps into pipeline ───────────────────────────
+# ── Connect all 4 steps ──────────────────────────────────────────
 @pipeline(
     name="loan-retraining-pipeline",
-    description="Loan default classification — data_prep → train → evaluate → register",
+    description="Loan default — data_prep → train → evaluate → register",
     default_compute="serverless",
 )
 def loan_pipeline():
@@ -138,6 +138,7 @@ def loan_pipeline():
         input_model=step2.outputs.output_model,
         input_metrics=step3.outputs.output_metrics,
     )
+    step4.identity = UserIdentityConfiguration()
 
 # ── Submit to Azure ML ───────────────────────────────────────────
 if __name__ == "__main__":

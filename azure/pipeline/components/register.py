@@ -1,6 +1,6 @@
 """
 register.py
-Pipeline Step 4 — Register model to Azure ML if roc_auc >= threshold
+Pipeline Step 4 — Register model to Azure ML
 Written by: MLOps Engineer
 """
 import argparse
@@ -9,7 +9,7 @@ import os
 from azure.ai.ml import MLClient
 from azure.ai.ml.entities import Model
 from azure.ai.ml.constants import AssetTypes
-from azure.identity import ManagedIdentityCredential, DefaultAzureCredential
+from azure.ai.ml.identity import AzureMLOnBehalfOfCredential
 
 
 def main():
@@ -23,23 +23,24 @@ def main():
     with open(os.path.join(args.input_metrics, "metrics.json")) as f:
         metrics = json.load(f)
 
-    roc_auc = metrics["roc_auc"]
+    roc_auc  = metrics["roc_auc"]
+    accuracy = metrics["accuracy"]
+    f1       = metrics["f1_score"]
+
     print(f">>> ROC-AUC  : {roc_auc}")
+    print(f">>> Accuracy : {accuracy}")
+    print(f">>> F1 Score : {f1}")
     print(f">>> Threshold: {args.min_roc_auc}")
 
+    # ── Check threshold ──────────────────────────────────────────
     if roc_auc < args.min_roc_auc:
-        print(">>> FAILED — model will NOT be registered")
+        print(">>> FAILED — ROC-AUC below threshold")
+        print(">>> Model will NOT be registered")
         return
 
-    # ── Connect to Azure ML ──────────────────────────────────────
+    # ── Connect using AzureMLOnBehalfOfCredential ────────────────
     print(">>> Connecting to Azure ML ...")
-    try:
-        credential = ManagedIdentityCredential()
-        credential.get_token("https://management.azure.com/.default")
-        print(">>> Using ManagedIdentityCredential")
-    except Exception:
-        credential = DefaultAzureCredential()
-        print(">>> Using DefaultAzureCredential")
+    credential = AzureMLOnBehalfOfCredential()
 
     ml_client = MLClient(
         credential=credential,
@@ -47,6 +48,7 @@ def main():
         resource_group_name=os.environ["AZUREML_ARM_RESOURCEGROUP"],
         workspace_name=os.environ["AZUREML_ARM_WORKSPACE_NAME"],
     )
+    print(">>> Connected successfully")
 
     # ── Register model ───────────────────────────────────────────
     print(">>> Registering model ...")
@@ -57,8 +59,8 @@ def main():
         type=AssetTypes.CUSTOM_MODEL,
         tags={
             "roc_auc":   str(roc_auc),
-            "accuracy":  str(metrics["accuracy"]),
-            "f1_score":  str(metrics["f1_score"]),
+            "accuracy":  str(accuracy),
+            "f1_score":  str(f1),
             "algorithm": "GradientBoostingClassifier",
             "framework": "scikit-learn",
             "stage":     "production",
